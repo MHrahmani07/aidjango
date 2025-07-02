@@ -1,0 +1,89 @@
+<!-- blog/templates/blog/blogpost_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Blog Posts{% endblock %}
+
+{% block content %}
+<h1 class="text-4xl font-extrabold mb-8 text-center text-blue-700">Latest Blog Posts</h1>
+
+<div class="flex justify-end mb-8">
+    {# Only show "Generate New Blog Post" button if user is authenticated AND staff #}
+    {% if user.is_authenticated and user.is_staff %}
+        <form action="{% url 'generate_new_blog_post' %}" method="post" class="inline-block">
+            {% csrf_token %}
+            <button type="submit" class="bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700 transition duration-300 shadow-lg flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.001 7.253a4.001 4.001 0 014.998 0l2.25 1.5a.75.75 0 00.75-1.25L17.5 7.5l-.25-.25a.75.75 0 00-1.25.75l.25.25-.25.25zm-2.25 0a4.001 4.001 0 00-4.998 0l-2.25 1.5a.75.75 0 01-.75-1.25L6.5 7.5l.25-.25a.75.75 0 011.25.75l-.25.25zm7.25 7.252a4.001 4.001 0 01-4.998 0l-2.25-1.5a.75.75 0 00-.75 1.25l.25.25.25.25a.75.75 0 001.25-.75l-.25-.25zm-2.25 0a4.001 4.001 0 004.998 0l2.25-1.5a.75.75 0 01.75 1.25L17.5 15l-.25.25a.75.75 0 01-1.25-.75l.25-.25zM12 11a1 1 0 100 2 1 1 0 000-2z"></path></svg>
+                <span>Generate New Blog Post</span>
+            </button>
+        </form>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 gap-8">
+    {% if blog_posts %}
+        {% for post in blog_posts %}
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200">
+                <h2 class="text-3xl font-bold mb-2 text-gray-800">
+                    <a href="{% url 'blog_detail' post.pk %}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ post.title }}</a>
+                </h2>
+                <p class="text-sm text-gray-500 mb-3">
+                    By {{ post.author.username|default:"N/A" }} on {{ post.published_date|date:"F j, Y" }}
+                    {% if post.related_book %}
+                        <span class="ml-2">| About: <a href="{% url 'book_detail' post.related_book.pk %}" class="text-purple-600 hover:underline">{{ post.related_book.name }}</a></span>
+                    {% endif %}
+                </p>
+                <p class="text-gray-700 mb-4 line-clamp-3">{{ post.content|striptags|truncatechars:200 }}</p>
+                <a href="{% url 'blog_detail' post.pk %}" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition duration-300">
+                    Read More
+                    <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-center text-gray-500">No blog posts found yet. Click "Generate New Blog Post" to add one!</p>
+    {% endif %}
+</div>
+
+{# Pagination controls for blog posts #}
+<div class="flex justify-center mt-10">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Previous
+            </a>
+        {% else %}
+            <span class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 cursor-not-allowed">
+                Previous
+            </span>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+            {% if page_obj.number == i %}
+                <span aria-current="page" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-600 text-white text-sm font-medium">
+                    {{ i }}
+                </span>
+            {% else %}
+                <a href="?page={{ i }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ i }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Next
+            </a>
+        {% else %}
+            <span class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 cursor-not-allowed">
+                Next
+            </span>
+        {% endif %}
+    </nav>
+</div>
+
+<p class="text-center text-gray-600 mt-4">
+    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} posts.
+</p>
+
+{% endblock content %}

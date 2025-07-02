@@ -1,0 +1,49 @@
+<!-- bookstore_project/templates/registration/profile.html -->
+{% extends 'base.html' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+    <h1 class="text-4xl font-extrabold mb-8 text-blue-700 text-center">Welcome, {{ user.username }}!</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        {# User Info Section #}
+        <div class="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-100">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Your Information</h2>
+            <div class="space-y-3 text-lg text-gray-700">
+                <p><strong class="font-semibold text-gray-800">Email:</strong> {{ user.email|default:"N/A" }}</p>
+                <p><strong class="font-semibold text-gray-800">First Name:</strong> {{ user.first_name|default:"N/A" }}</p>
+                <p><strong class="font-semibold text-gray-800">Last Name:</strong> {{ user.last_name|default:"N/A" }}</p>
+                <p><strong class="font-semibold text-gray-800">Joined On:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+                <p><strong class="font-semibold text-gray-800">Last Login:</strong> {{ user.last_login|date:"F j, Y, P"|default:"Never" }}</p>
+            </div>
+        </div>
+
+        {# Favorited Books Section #}
+        <div class="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-100">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Your Favorited Books</h2>
+            {% if favorited_books %}
+                <ul class="list-disc pl-5 space-y-2 text-lg text-gray-700">
+                    {% for book in favorited_books %}
+                        <li>
+                            <a href="{% url 'book_detail' book.pk %}" class="text-blue-600 hover:underline">
+                                {{ book.name }} <span class="text-gray-500 text-sm">({{ book.get_category_display }})</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-600 text-lg">You haven't added any books to your favorites yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-8 flex justify-center">
+        <a href="{% url 'book_list' %}" class="bg-gray-500 text-white px-6 py-3 rounded-md hover:bg-gray-600 transition duration-300 shadow-md flex items-center justify-center space-x-2 max-w-xs">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span>Back to Books</span>
+        </a>
+    </div>
+</div>
+{% endblock content %}

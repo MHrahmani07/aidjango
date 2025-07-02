@@ -1,0 +1,32 @@
+<!-- blog/templates/blog/blogpost_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+    <h1 class="text-4xl font-extrabold mb-4 text-center text-blue-700">{{ post.title }}</h1>
+    <p class="text-md text-gray-600 mb-6 text-center">
+        By {{ post.author.username|default:"N/A" }} on {{ post.published_date|date:"F j, Y, P" }}
+        {% if post.related_book %}
+            <span class="ml-2">| About: <a href="{% url 'book_detail' post.related_book.pk %}" class="text-purple-600 hover:underline">{{ post.related_book.name }}</a></span>
+        {% endif %}
+    </p>
+    <div class="prose prose-lg max-w-none text-gray-800 leading-relaxed mb-8">
+        {{ post.content|linebreaksbr }} {# Renders newlines as <br> tags #}
+    </div>
+
+    <div class="mt-8 flex justify-center space-x-4">
+        <a href="{% url 'blog_list' %}" class="bg-gray-500 text-white px-6 py-3 rounded-md hover:bg-gray-600 transition duration-300 shadow-md flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span>Back to Blog Posts</span>
+        </a>
+        {% if post.related_book %}
+            <a href="{% url 'book_detail' post.related_book.pk %}" class="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition duration-300 shadow-md flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5m0-13.5c-4.148 0-7.5 3.352-7.5 7.5s3.352 7.5 7.5 7.5 7.5-3.352 7.5-7.5h.75c0 4.557-3.693 8.25-8.25 8.25s-8.25-3.693-8.25-8.25S9.443 2.5 12 2.5z"></path></svg>
+                <span>View Related Book</span>
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

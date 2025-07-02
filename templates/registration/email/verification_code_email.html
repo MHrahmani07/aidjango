@@ -1,0 +1,17 @@
+{# bookstore_project/templates/registration/email/verification_code_email.html #}
+Hi {{ user.username }},
+
+Thank you for signing up for My Bookstore!
+
+Your 6-digit verification code is:
+
+{{ verification_code }}
+
+This code will expire in {{ code_lifespan_minutes }} minutes.
+
+To activate your account, please return to the website and enter this code on the verification page.
+
+If you did not register for an account on My Bookstore, please ignore this email.
+
+Thanks,
+The My Bookstore Team

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-200 text-center">
+    <h1 class="text-3xl font-extrabold mb-6 text-red-700">Confirm Deletion</h1>
+
+    <p class="text-lg text-gray-700 mb-8">Are you sure you want to delete the book: <br><strong class="text-xl font-semibold">{{ book.name }}</strong>?</p>
+
+    <form method="post" class="flex justify-center space-x-4">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition duration-300 shadow-md flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span>Confirm Delete</span>
+        </button>
+        <a href="{% url 'book_detail' book.pk %}" class="bg-gray-500 text-white px-6 py-3 rounded-md hover:bg-gray-600 transition duration-300 shadow-md flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span>Cancel</span>
+        </a>
+    </form>
+</div>
+{% endblock content %}

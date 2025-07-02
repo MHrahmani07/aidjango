@@ -1,0 +1,79 @@
+<!-- crud/templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookstore - {% block title %}{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple styling for form fields to make Tailwind classes work as expected */
+        .form-input, .form-select {
+            display: block; /* Ensure it takes full width of its container */
+            padding: 0.5rem 0.75rem;
+            line-height: 1.25;
+            border-width: 1px;
+            border-color: #d1d5db; /* gray-300 */
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.5); /* blue-200 with opacity */
+            border-color: #60a5fa; /* blue-400 or blue-300 */
+        }
+        /* For blog content, apply basic typography styles */
+        .prose {
+            font-size: 1.125rem; /* text-lg */
+            line-height: 1.75rem; /* leading-relaxed */
+        }
+        .prose h1, .prose h2, .prose h3 {
+            margin-top: 1.25em;
+            margin-bottom: 0.5em;
+            font-weight: 700;
+        }
+        .prose p {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <nav class="bg-blue-600 p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-white text-2xl font-bold rounded-md px-3 py-2 hover:bg-blue-700 transition duration-300">My Bookstore</a>
+            <div class="space-x-4 flex items-center">
+                <a href="{% url 'book_list' %}" class="text-white hover:text-blue-200 rounded-md px-3 py-2 transition duration-300">All Books</a>
+                <a href="{% url 'blog_list' %}" class="text-white hover:text-blue-200 rounded-md px-3 py-2 transition duration-300">Blog</a> {# New Blog Link #}
+                
+                {# Authentication links #}
+                {% if user.is_authenticated %}
+                    <span class="text-white">Welcome, {{ user.username }}!</span>
+                    <a href="{% url 'profile' %}" class="text-white hover:text-blue-200 rounded-md px-3 py-2 transition duration-300">Profile</a>
+                    {# Logout button as a form for POST request #}
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition duration-300 cursor-pointer">Log Out</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-white hover:text-blue-200 rounded-md px-3 py-2 transition duration-300">Log In</a>
+                    <a href="{% url 'signup' %}" class="bg-green-500 text-white px-3 py-2 rounded-md hover:bg-green-600 transition duration-300">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8 p-4">
+        {% block content %}
+        {% endblock content %}
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 mt-8 text-center">
+        <div class="container mx-auto">
+            &copy; 2023 My Bookstore. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>

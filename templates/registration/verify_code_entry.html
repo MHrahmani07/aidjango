@@ -1,0 +1,46 @@
+{# crud/templates/registration/verify_code_entry.html #}
+{% extends 'base.html' %}
+
+{% block title %}Verify Account with Code{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+    <h1 class="text-4xl font-extrabold mb-8 text-center text-blue-700">Verify Your Account</h1>
+
+    {% if messages %}
+        <ul class="mb-4">
+            {# Iterate through messages to display feedback (success/error) #}
+            {% for message in messages %}
+                <li {% if message.tags %} class="{{ message.tags }} text-center {% if message.tags == 'success' %}text-green-600{% elif message.tags == 'error' %}text-red-600{% endif %} font-bold"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        {# Loop through form fields to render input elements #}
+        {% for field in form %}
+            <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="block text-lg font-medium text-gray-700">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <div class="flex justify-center mt-8">
+            {# The submit button for the verification form #}
+            <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition duration-300 shadow-md flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Verify Account</span>
+            </button>
+        </div>
+    </form>
+    <p class="text-center text-gray-600 mt-6">
+        Didn't receive a code? You might want to <a href="{% url 'signup' %}" class="text-blue-600 hover:underline">sign up again</a> to receive a new one.
+    </p>
+</div>
+{% endblock content %}

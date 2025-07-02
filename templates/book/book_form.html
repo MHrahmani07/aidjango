@@ -1,0 +1,45 @@
+<!-- books/templates/books/book_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if book %}Edit Book{% else %}Add New Book{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+    <h1 class="text-4xl font-extrabold mb-8 text-center text-blue-700">
+        {% if book %}Edit Book: {{ book.name }}{% else %}Add New Book{% endif %}
+    </h1>
+
+    {# IMPORTANT: Add enctype="multipart/form-data" for file uploads #}
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %} {# Required for security in Django forms #}
+        
+        {# Render form fields including new file/image fields #}
+        {% for field in form %}
+            <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="block text-lg font-medium text-gray-700">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="flex justify-center space-x-4 mt-8">
+            <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition duration-300 shadow-md flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Save Book</span>
+            </button>
+            <a href="{% url 'book_list' %}" class="bg-gray-500 text-white px-8 py-3 rounded-md hover:bg-gray-600 transition duration-300 shadow-md flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <span>Cancel</span>
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock content %}
+    
