@@ -3,32 +3,35 @@
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse # Import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as auth_login
+from django.views.decorators.http import require_POST # For POST-only views
+
 import random
 import datetime
 from django.utils import timezone
+
 from django.contrib.auth.views import LoginView as DjangoLoginView
-from django.contrib.auth import authenticate 
-from .models import Book, VerificationCode
+from django.contrib.auth import authenticate
+
+from .models import Book, VerificationCode, Cart, CartItem # Ensure all models are imported
 from .forms import BookForm, CodeVerificationForm, CustomUserCreationForm
 from django.contrib.auth.models import User
-from django.db.models import Count # For random ordering
-import random # For truly random selection
-from django.http import JsonResponse, HttpResponse
 
-
-
-
+# Home Page View
 def home_view(request):
-    return render(request, 'home.html')
+    books_with_images = Book.objects.filter(book_image__isnull=False).order_by('?')[:10]
+    context = {
+        'books_for_slider': books_with_images,
+    }
+    return render(request, 'home.html', context)
 
 # Book Views
 class BookListView(ListView):
@@ -149,7 +152,7 @@ def toggle_favorite_view(request, pk):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse_lazy('book_detail', kwargs={'pk': pk})))
 
 
-
+# Code Verification View
 def verify_code_view(request):
     """
     Allows user to enter verification code sent to their email.
@@ -164,7 +167,6 @@ def verify_code_view(request):
             entered_code = form.cleaned_data['code']
             
             try:
-                
                 verification_entry = VerificationCode.objects.filter(
                     code=entered_code,
                     user__is_active=False,
@@ -186,21 +188,18 @@ def verify_code_view(request):
             except Exception as e:
                 messages.error(request, f'An unexpected error occurred during verification: {e}')
                 
-    else:
+    else: # GET request
         form = CodeVerificationForm()
 
     return render(request, 'registration/verify_code_entry.html', {'form': form})
 
 
-
+# Custom Login View for Email Verification on Sign In
 class CustomLoginView(DjangoLoginView):
     template_name = 'registration/login.html'
     authentication_form = AuthenticationForm
 
     def post(self, request, *args, **kwargs):
-        """
-        Overrides the POST method to add an explicit check for inactive users.
-        """
         form = self.get_form()
         if form.is_valid():
             username = form.cleaned_data.get('username')
@@ -210,45 +209,93 @@ class CustomLoginView(DjangoLoginView):
 
             if user is not None:
                 if not user.is_active:
-                   
                     messages.warning(request, 'Your account is not active. Please verify your email to log in.')
                     return redirect('verify_code_entry')
                 else:
-                    
-                    return self.form_valid(form) 
+                    return self.form_valid(form)
             else:
-                
                 messages.error(request, 'Invalid username or password. Please try again.')
-                return self.form_invalid(form) 
+                return self.form_invalid(form)
         else:
             return self.form_invalid(form)
-    pass
-
-# book/views.py
-# ... (imports) ...
 
 
-def get_random_book_api(request):
-    if request.method == 'GET':
-        books_count = Book.objects.count()
-        if books_count == 0:
-            return JsonResponse({'status': 'error', 'message': 'No books available'}, status=404)
+# Add to Cart View
+@require_POST
+@login_required
+def add_to_cart_view(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    user = request.user
 
-        # Get a random book
-        random_index = random.randint(0, books_count - 1)
-        random_book = Book.objects.all()[random_index]
+    cart, created = Cart.objects.get_or_create(user=user)
 
-        data = {
-            'id': random_book.id,
-            'name': random_book.name,
-            'publisher': random_book.publisher,
-            'provider': random_book.provider,
-            'price': str(random_book.price), # Convert Decimal to string
-            'category': random_book.category,
-            'category_display': random_book.get_category_display(),
-            # Add image/pdf URLs if needed by LLM
-            'image_url': request.build_absolute_uri(random_book.book_image.url) if random_book.book_image else None,
-            'pdf_url': request.build_absolute_uri(random_book.book_pdf.url) if random_book.book_pdf else None,
-        }
-        return JsonResponse({'status': 'success', 'book': data})
-    return JsonResponse({'status': 'error', 'message': 'Only GET requests allowed'}, status=405)
+    cart_item, item_created = CartItem.objects.get_or_create(
+        cart=cart,
+        book=book,
+        defaults={'quantity': 1}
+    )
+
+    if not item_created:
+        cart_item.quantity += 1
+        cart_item.save()
+        messages.success(request, f"Quantity of '{book.name}' updated to {cart_item.quantity} in your cart.")
+    else:
+        messages.success(request, f"'{book.name}' added to your cart.")
+    
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse_lazy('book_detail', kwargs={'pk': pk})))
+
+
+# New: Cart Detail View
+@login_required
+def cart_detail_view(request):
+    user = request.user
+    # Try to get the user's cart; if it doesn't exist, create an empty one
+    # This ensures a cart always exists for a logged-in user when accessing this page
+    cart, created = Cart.objects.get_or_create(user=user)
+    
+    # Get all items associated with this cart
+    cart_items = cart.cartitem_set.all() # Use the reverse relation to get all CartItems for this cart
+
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+    }
+    return render(request, 'book/cart_detail.html', context)
+
+
+# New: Update Cart Item Quantity View
+@require_POST
+@login_required
+def update_cart_item_quantity_view(request, item_pk):
+    cart_item = get_object_or_404(CartItem, pk=item_pk, cart__user=request.user)
+    
+    try:
+        new_quantity = int(request.POST.get('quantity'))
+    except (TypeError, ValueError):
+        messages.error(request, "Invalid quantity provided.")
+        return HttpResponseRedirect(reverse_lazy('cart_detail'))
+
+    if new_quantity <= 0:
+        # If quantity is 0 or less, remove the item
+        cart_item.delete()
+        messages.info(request, f"'{cart_item.book.name}' removed from your cart.")
+    else:
+        cart_item.quantity = new_quantity
+        cart_item.save()
+        messages.success(request, f"Quantity of '{cart_item.book.name}' updated to {new_quantity}.")
+    
+    return HttpResponseRedirect(reverse_lazy('cart_detail'))
+
+
+# New: Remove From Cart View
+@require_POST
+@login_required
+def remove_from_cart_view(request, item_pk):
+    # Ensure the cart item belongs to the current user's cart
+    cart_item = get_object_or_404(CartItem, pk=item_pk, cart__user=request.user)
+    
+    book_name = cart_item.book.name # Get name before deleting
+    cart_item.delete()
+    messages.info(request, f"'{book_name}' removed from your cart.")
+    
+    return HttpResponseRedirect(reverse_lazy('cart_detail'))

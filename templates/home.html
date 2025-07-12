@@ -1,0 +1,239 @@
+<!-- crud/templates/home.html -->
+{% extends 'base.html' %}
+{% load static %} {# Load the static files tag #}
+
+{% block title %}Welcome to My Bookstore{% endblock %}
+
+{% block content %}
+<style>
+    /* Custom CSS for the slider */
+    .slider-container {
+        position: relative;
+        width: 100%;
+        max-width: 900px; /* Adjust max-width as needed */
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 1rem; /* rounded-xl */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+    }
+    .slider {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+    }
+    .slider-item {
+        min-width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f8fafc; /* bg-gray-50 */
+    }
+    .slider-item img {
+        width: 100%;
+        height: 400px; /* Fixed height for slider images */
+        object-fit: cover; /* Changed to cover to fill the space, or contain if you prefer whole image visible */
+        border-radius: 0.5rem; /* rounded-lg */
+    }
+    .slider-nav-button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        padding: 1rem;
+        cursor: pointer;
+        font-size: 1.5rem;
+        z-index: 10;
+        border-radius: 9999px; /* rounded-full */
+        transition: background-color 0.3s ease;
+    }
+    .slider-nav-button:hover {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    .slider-nav-button.prev {
+        left: 1rem;
+    }
+    .slider-nav-button.next {
+        right: 1rem;
+    }
+    /* Placeholder image styling for better visual consistency */
+    .placeholder-image {
+        width: 100%;
+        height: 400px;
+        background-color: #e2e8f0; /* gray-200 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #64748b; /* gray-600 */
+        font-size: 1.5rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+    }
+</style>
+
+<div class="text-center py-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-2xl mb-12">
+    <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-4 animate-fade-in-down">Welcome to My Bookstore!</h1>
+    <p class="text-xl text-blue-100 mb-8 max-w-3xl mx-auto animate-fade-in-up">
+        Discover a universe of stories, knowledge, and imagination. Your next great read awaits.
+    </p>
+    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 animate-fade-in-up delay-200">
+        <a href="{% url 'book_list' %}" class="bg-white text-blue-700 px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:bg-blue-100 transition duration-300 transform hover:scale-105">
+            Browse All Books
+        </a>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'signup' %}" class="bg-green-500 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:bg-green-600 transition duration-300 transform hover:scale-105">
+                Join Our Community
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{# Book Image Slider Section #}
+<section class="mb-12">
+    <h2 class="text-4xl font-extrabold text-center text-gray-800 mb-8">Featured Books</h2>
+    <div class="slider-container">
+        <div class="slider" id="bookSlider">
+            {# Replace these with your actual image paths in the static/slide/ directory #}
+            <div class="slider-item">
+                <img src="{% static 'slide/book_image_1.jpg' %}" alt="Book Cover 1">
+            </div>
+            <div class="slider-item">
+                <img src="{% static 'slide/book_image_2.png' %}" alt="Book Cover 2">
+            </div>
+            <div class="slider-item">
+                <img src="{% static 'slide/book_image_3.jpg' %}" alt="Book Cover 3">
+            </div>
+            <div class="slider-item">
+                <img src="{% static 'slide/book_image_4.png' %}" alt="Book Cover 4">
+            </div>
+            {# Add more slider-item divs for each image you want to display #}
+            
+            {# Fallback if no images are set up #}
+            {% comment %}
+            If you want a fallback if no images are placed in static/slide,
+            you could add a single placeholder item here:
+            <div class="slider-item">
+                <div class="placeholder-image">
+                    Add Images to static/slide/
+                </div>
+            </div>
+            {% endcomment %}
+        </div>
+        <button class="slider-nav-button prev" onclick="moveSlider(-1)">&#10094;</button>
+        <button class="slider-nav-button next" onclick="moveSlider(1)">&#10095;</button>
+    </div>
+</section>
+
+{# About Us / Mission Section #}
+<section class="bg-white p-8 rounded-2xl shadow-xl mb-12">
+    <h2 class="text-3xl font-bold text-blue-700 mb-6 text-center">Our Mission</h2>
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div>
+            <p class="text-lg text-gray-700 leading-relaxed mb-4">
+                At My Bookstore, we believe in the power of stories and knowledge. Our mission is to connect readers with the books that inspire, educate, and entertain them. We curate a diverse collection, with a special focus on enriching Persian literature and cutting-edge national computer books.
+            </p>
+            <p class="text-lg text-gray-700 leading-relaxed">
+                We strive to create a vibrant community for book lovers, offering a seamless browsing experience, personalized favorites, and insightful blog posts generated by AI to spark your next literary adventure.
+            </p>
+        </div>
+        <div class="flex justify-center">
+            <img src="https://placehold.co/400x300/c7d2fe/3730a3?text=Our+Mission" alt="Our Mission" class="rounded-lg shadow-lg w-full max-w-md">
+        </div>
+    </div>
+</section>
+
+{# Latest Blog Posts Section (Optional - can integrate top 3 blog posts here) #}
+<section class="mb-12">
+    <h2 class="text-4xl font-extrabold text-center text-gray-800 mb-8">From Our Blog</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+        {# You would typically query for the latest 3 blog posts in home_view and loop here #}
+        {% comment %}
+        Example of how you might display latest blog posts if passed from view:
+        {% for post in latest_blog_posts %}
+            <div class="bg-white p-6 rounded-lg shadow-lg card-hover-effect">
+                <h3 class="text-xl font-semibold mb-2"><a href="{% url 'blog_detail' post.pk %}" class="text-blue-600 hover:underline">{{ post.title }}</a></h3>
+                <p class="text-sm text-gray-500 mb-3">By {{ post.author.username }} on {{ post.published_date|date:"M d, Y" }}</p>
+                <p class="text-gray-700 text-sm line-clamp-3">{{ post.content|striptags|truncatechars:100 }}</p>
+            </div>
+        {% endfor %}
+        {% endcomment %}
+        <div class="bg-white p-6 rounded-lg shadow-lg card-hover-effect">
+            <h3 class="text-xl font-semibold mb-2">AI in Literature: A New Era</h3>
+            <p class="text-sm text-gray-500 mb-3">By Admin on July 10, 2024</p>
+            <p class="text-gray-700 text-sm line-clamp-3">Explore how artificial intelligence is shaping the future of storytelling and literary analysis...</p>
+            <a href="{% url 'blog_list' %}" class="text-blue-500 hover:underline text-sm mt-2 block">Read More</a>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg card-hover-effect">
+            <h3 class="text-xl font-semibold mb-2">The Timeless Appeal of Classics</h3>
+            <p class="text-sm text-gray-500 mb-3">By Admin on July 05, 2024</p>
+            <p class="text-gray-700 text-sm line-clamp-3">Delve into why certain books endure through generations and continue to captivate readers...</p>
+            <a href="{% url 'blog_list' %}" class="text-blue-500 hover:underline text-sm mt-2 block">Read More</a>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg card-hover-effect">
+            <h3 class="text-xl font-semibold mb-2">Deep Dive into Python Programming Books</h3>
+            <p class="text-sm text-gray-500 mb-3">By Admin on June 28, 2024</p>
+            <p class="text-gray-700 text-sm line-clamp-3">A guide to the best resources for learning Python, from beginners to advanced topics...</p>
+            <a href="{% url 'blog_list' %}" class="text-blue-500 hover:underline text-sm mt-2 block">Read More</a>
+        </div>
+    </div>
+    <div class="text-center mt-8">
+        <a href="{% url 'blog_list' %}" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300 shadow-lg">View All Blog Posts</a>
+    </div>
+</section>
+
+
+<script>
+    let currentSlide = 0;
+    const slider = document.getElementById('bookSlider');
+    const slides = document.querySelectorAll('.slider-item');
+    const totalSlides = slides.length;
+
+    // Function to move the slider
+    function moveSlider(direction) {
+        currentSlide += direction;
+        if (currentSlide < 0) {
+            currentSlide = totalSlides - 1;
+        } else if (currentSlide >= totalSlides) {
+            currentSlide = 0;
+        }
+        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    // Auto-advance slider (optional)
+    let slideInterval;
+    function startAutoSlide() {
+        slideInterval = setInterval(() => {
+            moveSlider(1);
+        }, 5000); // Change slide every 5 seconds
+    }
+
+    function stopAutoSlide() {
+        clearInterval(slideInterval);
+    }
+
+    // Start auto-slide when page loads
+    window.onload = () => {
+        if (totalSlides > 1) { // Only auto-slide if there's more than one slide
+            startAutoSlide();
+            // Add event listeners to stop auto-slide on hover
+            slider.parentElement.addEventListener('mouseenter', stopAutoSlide);
+            slider.parentElement.addEventListener('mouseleave', startAutoSlide);
+        }
+    };
+
+    // Ensure slider adjusts on window resize
+    window.addEventListener('resize', () => {
+        slider.style.transition = 'none'; // Disable transition during resize
+        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        setTimeout(() => {
+            slider.style.transition = 'transform 0.5s ease-in-out'; // Re-enable transition
+        }, 0);
+    });
+
+    // Initial positioning
+    if (slider) {
+        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+</script>
+{% endblock content %}
